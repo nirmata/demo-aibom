@@ -72,7 +72,7 @@ jobs:
         run: cp demo/bad-agent-model.ts src/research-agent.ts
 
       - name: "🔍 Scan source code for AI components"
-        run: nctl agent aibom generate .
+        run: nctl agent aibom generate src/
 
   # ── Act 2 (approved only) ──────────────────────────────────────────────────
   act-2-baseline:
@@ -104,7 +104,7 @@ jobs:
 
       - name: "📄 Generate AIBOM JSON"
         run: |
-          nctl agent aibom generate . \
+          nctl agent aibom generate src \
             --output json \
             --file aibom-current.json
 
@@ -149,7 +149,7 @@ jobs:
 
       - name: "📊 Generate SARIF report"
         run: |
-          nctl agent aibom generate . \
+          nctl agent aibom generate src \
             --output sarif \
             --file results.sarif
 
@@ -176,7 +176,7 @@ jobs:
 
       - name: "📄 Generate AIBOM for attestation"
         run: |
-          nctl agent aibom generate . \
+          nctl agent aibom generate src \
             --output json \
             --file aibom-current.json
 
@@ -225,7 +225,7 @@ jobs:
 
       - name: "📄 Generate AIBOM (with prohibited tool present)"
         run: |
-          nctl agent aibom generate . \
+          nctl agent aibom generate src \
             --output json \
             --file aibom-bad-tools.json
 
@@ -267,7 +267,7 @@ jobs:
 
       - name: "📄 Generate AIBOM (with unapproved model present)"
         run: |
-          nctl agent aibom generate . \
+          nctl agent aibom generate src \
             --output json \
             --file aibom-bad-model.json
 
