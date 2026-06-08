@@ -185,6 +185,7 @@ jobs:
           COSIGN_EXPERIMENTAL: "1"
         run: |
           cosign attest \
+            --yes \
             --predicate aibom-current.json \
             --type https://nirmata.com/aibom/v1 \
             "${{ steps.build.outputs.image }}@${{ steps.build.outputs.digest }}"
