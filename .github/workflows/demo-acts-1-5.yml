@@ -54,6 +54,7 @@ jobs:
           #!/bin/bash
           exec docker run --rm \
             --entrypoint nctl \
+            --user root \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/nirmata/nctl-sandbox:latest \
@@ -92,6 +93,7 @@ jobs:
           #!/bin/bash
           exec docker run --rm \
             --entrypoint nctl \
+            --user root \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/nirmata/nctl-sandbox:latest \
@@ -136,6 +138,7 @@ jobs:
           #!/bin/bash
           exec docker run --rm \
             --entrypoint nctl \
+            --user root \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/nirmata/nctl-sandbox:latest \
@@ -208,6 +211,7 @@ jobs:
           #!/bin/bash
           exec docker run --rm \
             --entrypoint nctl \
+            --user root \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/nirmata/nctl-sandbox:latest \
@@ -249,6 +253,7 @@ jobs:
           #!/bin/bash
           exec docker run --rm \
             --entrypoint nctl \
+            --user root \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/nirmata/nctl-sandbox:latest \
