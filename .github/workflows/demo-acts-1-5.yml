@@ -45,7 +45,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install nctl
-        uses: nirmata/action-install-nctl-scan@v0.0.2
+        run: |
+          curl -fsSL -o nctl.zip \
+            https://nirmata-downloads.s3.us-east-2.amazonaws.com/nctl/nctl_4.10.17/nctl_4.10.17_linux_amd64.zip
+          unzip -o nctl.zip nctl
+          chmod +x nctl
+          sudo mv nctl /usr/local/bin/nctl
+          nctl version
 
       - name: "[bad-tool] Inject filesystem tool into source"
         if: inputs.scenario == 'bad-tool'
@@ -68,7 +74,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install nctl
-        uses: nirmata/action-install-nctl-scan@v0.0.2
+        run: |
+          curl -fsSL -o nctl.zip \
+            https://nirmata-downloads.s3.us-east-2.amazonaws.com/nctl/nctl_4.10.17/nctl_4.10.17_linux_amd64.zip
+          unzip -o nctl.zip nctl
+          chmod +x nctl
+          sudo mv nctl /usr/local/bin/nctl
+          nctl version
 
       - name: "📄 Generate AIBOM JSON"
         run: |
@@ -97,7 +109,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install nctl
-        uses: nirmata/action-install-nctl-scan@v0.0.2
+        run: |
+          curl -fsSL -o nctl.zip \
+            https://nirmata-downloads.s3.us-east-2.amazonaws.com/nctl/nctl_4.10.17/nctl_4.10.17_linux_amd64.zip
+          unzip -o nctl.zip nctl
+          chmod +x nctl
+          sudo mv nctl /usr/local/bin/nctl
+          nctl version
 
       - name: "📊 Generate SARIF report"
         run: |
@@ -154,7 +172,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install nctl
-        uses: nirmata/action-install-nctl-scan@v0.0.2
+        run: |
+          curl -fsSL -o nctl.zip \
+            https://nirmata-downloads.s3.us-east-2.amazonaws.com/nctl/nctl_4.10.17/nctl_4.10.17_linux_amd64.zip
+          unzip -o nctl.zip nctl
+          chmod +x nctl
+          sudo mv nctl /usr/local/bin/nctl
+          nctl version
 
       - name: Inject filesystem tool
         run: cp demo/bad-agent-tools.ts src/research-agent.ts
@@ -180,7 +204,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install nctl
-        uses: nirmata/action-install-nctl-scan@v0.0.2
+        run: |
+          curl -fsSL -o nctl.zip \
+            https://nirmata-downloads.s3.us-east-2.amazonaws.com/nctl/nctl_4.10.17/nctl_4.10.17_linux_amd64.zip
+          unzip -o nctl.zip nctl
+          chmod +x nctl
+          sudo mv nctl /usr/local/bin/nctl
+          nctl version
 
       - name: Inject unapproved model
         run: cp demo/bad-agent-model.ts src/research-agent.ts
