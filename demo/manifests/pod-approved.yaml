@@ -1,0 +1,29 @@
+# Pod with a properly attested image — admitted by Kyverno.
+# Replace the image digest with one produced by your CI pipeline.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: research-agent-approved
+  namespace: default
+  labels:
+    app: research-agent
+    aibom-attested: "true"
+spec:
+  containers:
+    - name: agent
+      # Image built by CI, pushed with a digest, AIBOM attested via cosign.
+      # Replace with the output of your build-attest.yml workflow run.
+      image: registry.example.com/agents/research-agent@sha256:<digest-from-ci>
+      env:
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: anthropic-credentials
+              key: api-key
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "128Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"

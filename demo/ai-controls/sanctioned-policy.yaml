@@ -1,0 +1,52 @@
+# AI Controls proxy — sanctioned governance policy
+# Applied to the AI Controls proxy deployed in the cluster.
+# The proxy intercepts all outbound LLM API calls from agent pods
+# and enforces this policy before the call reaches the provider.
+#
+# kubectl apply -f demo/ai-controls/sanctioned-policy.yaml
+# nctl controls status
+
+apiVersion: controls.nirmata.io/v1alpha1
+kind: AIControlsPolicy
+metadata:
+  name: production-ai-governance
+  namespace: ai-controls
+  annotations:
+    policies.kyverno.io/description: >-
+      Defines which AI providers, models, and endpoints are sanctioned
+      for use in this environment. All outbound LLM calls are proxied
+      through the AI Controls gateway and evaluated against this policy.
+spec:
+  # Approved providers and model lists
+  allowedProviders:
+    - name: anthropic
+      endpoint: https://api.anthropic.com/v1
+      allowedModels:
+        - claude-3-5-sonnet-20241022
+        - claude-3-5-haiku-20241022
+        - claude-3-opus-20240229
+    - name: openai
+      endpoint: https://api.openai.com/v1
+      allowedModels:
+        - gpt-4o
+        - gpt-4o-mini
+
+  # Explicitly blocked — gateway returns 403 with policy reason
+  blockedModels:
+    - name: gpt-5
+      reason: "Not yet approved — pending security review"
+    - name: o3
+      reason: "Pending review by AI governance committee"
+    - name: gpt-4-32k
+      reason: "Deprecated — use gpt-4o instead"
+
+  # All calls are logged to Nirmata Control Hub for audit
+  auditMode: all
+
+  # Block on violation (set to 'warn' for observe-only mode)
+  enforcement: block
+
+  # Report policy violations to NCH
+  reportTo:
+    controlHub: true
+    slackChannel: "#ai-governance-alerts"

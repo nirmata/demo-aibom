@@ -1,0 +1,239 @@
+name: "AIBOM Demo — Pillar 1: AI BOM Supply Chain"
+
+# Trigger manually from the Actions tab.
+# Shows Pillar 1 of the three-pillar Nirmata AI security demo:
+#   AI BOM — supply chain visibility via source scanning and CI gate.
+#
+# Pillars 2–3 (AI Controls proxy + Kyverno eBPF runtime) run live
+# in the terminal via:  bash demo/run-demo.sh
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: |
+          Demo scenario:
+            approved  — Acts 1, 2, 3: clean repo, gate passes, SARIF uploaded, image attested
+            bad-tool  — Acts 1, 4:    filesystem tool added, diff gate BLOCKS
+            bad-model — Acts 1, 5:    gpt-5 added, diff gate BLOCKS
+        required: true
+        default: approved
+        type: choice
+        options:
+          - approved
+          - bad-tool
+          - bad-model
+
+permissions:
+  contents: read
+  security-events: write   # SARIF upload to GitHub Security tab
+  id-token: write           # keyless cosign signing (approved scenario)
+  packages: write           # push image to GHCR (approved scenario)
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/research-agent
+
+jobs:
+
+  # ── Act 1 ──────────────────────────────────────────────────────────────────
+  # Always runs. Injects the bad source file for bad scenarios so the customer
+  # can see what the "developer changed" before the gate runs.
+  act-1-discover:
+    name: "Act 1 · Discover AI components"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install nctl
+        uses: nirmata/action-install-nctl-scan@v0.0.2
+
+      - name: "[bad-tool] Inject filesystem tool into source"
+        if: inputs.scenario == 'bad-tool'
+        run: cp demo/bad-agent-tools.ts src/research-agent.ts
+
+      - name: "[bad-model] Inject unapproved model into source"
+        if: inputs.scenario == 'bad-model'
+        run: cp demo/bad-agent-model.ts src/research-agent.ts
+
+      - name: "🔍 Scan source code for AI components"
+        run: nctl agent aibom generate .
+
+  # ── Act 2 (approved only) ──────────────────────────────────────────────────
+  act-2-baseline:
+    name: "Act 2 · Baseline diff — gate PASSES"
+    runs-on: ubuntu-latest
+    needs: act-1-discover
+    if: inputs.scenario == 'approved'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install nctl
+        uses: nirmata/action-install-nctl-scan@v0.0.2
+
+      - name: "📄 Generate AIBOM JSON"
+        run: |
+          nctl agent aibom generate . \
+            --output json \
+            --file aibom-current.json
+
+      - name: "✅ Diff gate — expect PASS (repo matches baseline)"
+        run: |
+          echo "Comparing against committed baseline (aibom-baseline.json)..."
+          nctl agent aibom diff aibom-baseline.json aibom-current.json --fail-on added
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aibom-${{ github.sha }}
+          path: aibom-current.json
+          retention-days: 30
+
+  # ── Act 3 (approved only) ──────────────────────────────────────────────────
+  act-3-sarif:
+    name: "Act 3 · SARIF — AI inventory in GitHub Security tab"
+    runs-on: ubuntu-latest
+    needs: act-2-baseline
+    if: inputs.scenario == 'approved'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install nctl
+        uses: nirmata/action-install-nctl-scan@v0.0.2
+
+      - name: "📊 Generate SARIF report"
+        run: |
+          nctl agent aibom generate . \
+            --output sarif \
+            --file results.sarif
+
+      - name: "⬆ Upload SARIF to GitHub Security tab"
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
+      - name: "🐳 Build and push image to GHCR"
+        id: build
+        run: |
+          TAG="${{ env.IMAGE }}:${{ github.sha }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -t "$TAG" .
+          docker push "$TAG"
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$TAG" | cut -d@ -f2)
+          echo "image=$TAG" >> "$GITHUB_OUTPUT"
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "Image: $TAG"
+          echo "Digest: $DIGEST"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: "📄 Generate AIBOM for attestation"
+        run: |
+          nctl agent aibom generate . \
+            --output json \
+            --file aibom-current.json
+
+      - name: "🔏 Attest AIBOM to image digest (keyless cosign)"
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          cosign attest \
+            --predicate aibom-current.json \
+            --type https://nirmata.com/aibom/v1 \
+            "${{ steps.build.outputs.image }}@${{ steps.build.outputs.digest }}"
+
+      - name: "📡 Publish AIBOM to Nirmata Control Hub"
+        run: nctl agent aibom publish aibom-current.json
+
+  # ── Act 4 (bad-tool only) ──────────────────────────────────────────────────
+  act-4-bad-tool:
+    name: "Act 4 · CI gate BLOCKS — filesystem tool detected"
+    runs-on: ubuntu-latest
+    needs: act-1-discover
+    if: inputs.scenario == 'bad-tool'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install nctl
+        uses: nirmata/action-install-nctl-scan@v0.0.2
+
+      - name: Inject filesystem tool
+        run: cp demo/bad-agent-tools.ts src/research-agent.ts
+
+      - name: "📄 Generate AIBOM (with prohibited tool present)"
+        run: |
+          nctl agent aibom generate . \
+            --output json \
+            --file aibom-bad-tools.json
+
+      - name: "🚫 Diff gate — expect FAIL (filesystem tool not in baseline)"
+        run: |
+          echo "Comparing against committed baseline (aibom-baseline.json)..."
+          nctl agent aibom diff aibom-baseline.json aibom-bad-tools.json --fail-on added
+
+  # ── Act 5 (bad-model only) ─────────────────────────────────────────────────
+  act-5-bad-model:
+    name: "Act 5 · CI gate BLOCKS — unapproved model (gpt-5) detected"
+    runs-on: ubuntu-latest
+    needs: act-1-discover
+    if: inputs.scenario == 'bad-model'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install nctl
+        uses: nirmata/action-install-nctl-scan@v0.0.2
+
+      - name: Inject unapproved model
+        run: cp demo/bad-agent-model.ts src/research-agent.ts
+
+      - name: "📄 Generate AIBOM (with unapproved model present)"
+        run: |
+          nctl agent aibom generate . \
+            --output json \
+            --file aibom-bad-model.json
+
+      - name: "🚫 Diff gate — expect FAIL (gpt-5 not in approved baseline)"
+        run: |
+          echo "Comparing against committed baseline (aibom-baseline.json)..."
+          nctl agent aibom diff aibom-baseline.json aibom-bad-model.json --fail-on added
+
+  # ── Summary ────────────────────────────────────────────────────────────────
+  summary:
+    name: "Summary"
+    runs-on: ubuntu-latest
+    needs: [act-1-discover, act-2-baseline, act-3-sarif, act-4-bad-tool, act-5-bad-model]
+    if: always()
+    steps:
+      - name: Write job summary
+        run: |
+          SCENARIO="${{ inputs.scenario }}"
+
+          echo "## AIBOM Demo — Acts 1–5 Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Scenario:** \`$SCENARIO\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Act | Description | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----|-------------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Act 1 | Discover AI components | ${{ needs.act-1-discover.result }} |" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$SCENARIO" == "approved" ]]; then
+            echo "| Act 2 | Baseline diff — PASSED | ${{ needs.act-2-baseline.result }} |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Act 3 | SARIF + attest + publish | ${{ needs.act-3-sarif.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$SCENARIO" == "bad-tool" ]]; then
+            echo "| Act 4 | \`filesystem\` tool BLOCKED | ${{ needs.act-4-bad-tool.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$SCENARIO" == "bad-model" ]]; then
+            echo "| Act 5 | \`gpt-5\` model BLOCKED | ${{ needs.act-5-bad-model.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "---" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$SCENARIO" == "approved" ]]; then
+            echo "✅ **Happy path**: scan passed, gate passed, image attested, AIBOM published to NCH." >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "> **Next:** run Acts 6–9 live in the terminal with \`bash demo/run-demo.sh\`" >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$SCENARIO" == "bad-tool" ]]; then
+            echo "🚫 **Blocked**: \`filesystem\` tool is not in the approved baseline — CI gate stopped the PR. Build never ran." >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$SCENARIO" == "bad-model" ]]; then
+            echo "🚫 **Blocked**: \`gpt-5\` is not in the approved model list — CI gate stopped the PR. Build never ran." >> "$GITHUB_STEP_SUMMARY"
+          fi

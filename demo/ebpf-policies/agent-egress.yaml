@@ -1,0 +1,71 @@
+# Kyverno runtime eBPF — agent egress enforcement
+#
+# In production, Kyverno's eBPF runtime hooks into the Linux kernel via
+# eBPF programs that intercept connect() syscalls from specific processes.
+# Any attempt by an agent to reach an endpoint not in the allow-list is
+# killed at the syscall level — no bypass is possible from userspace.
+#
+# In this local demo the same logical enforcement is provided by
+# Kubernetes NetworkPolicy (enforced by kindnet at the kernel level).
+# Production adds domain/SNI-level filtering on top.
+#
+# kubectl apply -f demo/ebpf-policies/agent-egress.yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ai-agent-default-deny
+  namespace: default
+  labels:
+    nirmata.io/enforcement: ebpf-runtime
+    nirmata.io/pillar: "3-runtime"
+  annotations:
+    policies.nirmata.io/description: >-
+      Default-deny all egress from pods labelled nirmata.io/ai-agent=true.
+      Represents eBPF enforcement: no outbound call leaves the process
+      unless an explicit allow rule permits it.
+spec:
+  podSelector:
+    matchLabels:
+      nirmata.io/ai-agent: "true"
+  policyTypes:
+    - Egress
+  egress:
+    # Allow DNS so hostname resolution still works
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # Allow HTTPS to approved LLM endpoints only.
+    # Production eBPF layer additionally filters by SNI hostname so only
+    # api.anthropic.com and api.openai.com are reachable on port 443.
+    - ports:
+        - port: 443
+          protocol: TCP
+---
+# Kyverno ClusterPolicy — auto-labels any Pod in 'agents' namespace as an AI agent.
+# This ensures the eBPF NetworkPolicy applies automatically without
+# requiring developers to add labels manually.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: label-ai-agent-pods
+  annotations:
+    policies.kyverno.io/description: >-
+      Automatically applies nirmata.io/ai-agent=true to any Pod in
+      the 'agents' namespace so the eBPF runtime policy is enforced
+      without developer action.
+spec:
+  rules:
+    - name: add-ai-agent-label
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+              namespaces: [agents]
+      mutate:
+        patchStrategicMerge:
+          metadata:
+            labels:
+              nirmata.io/ai-agent: "true"

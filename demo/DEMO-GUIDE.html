@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nirmata AI Security — Demo Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 15px; line-height: 1.65; color: #1a1a2e; background: #f5f6fa; margin: 0; padding: 2rem;
+  }
+  .container {
+    max-width: 900px; margin: 0 auto; background: #fff; border-radius: 10px;
+    padding: 2.5rem 3rem; box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  }
+  h1 { font-size: 2rem; font-weight: 700; color: #0f3460; margin-top: 0;
+       border-bottom: 3px solid #e94560; padding-bottom: 0.6rem; }
+  h2 { font-size: 1.25rem; font-weight: 600; color: #0f3460; margin-top: 2.2rem;
+       border-left: 4px solid #e94560; padding-left: 0.75rem; }
+  h3 { font-size: 1.05rem; font-weight: 600; color: #333; margin-top: 1.5rem; }
+  p { margin: 0.6rem 0 0.9rem; }
+  hr { border: none; border-top: 1px solid #e8e8f0; margin: 2rem 0; }
+  code { background: #f0f2f8; color: #c0392b; padding: 0.15em 0.4em;
+         border-radius: 4px; font-family: "SF Mono","Fira Code","Consolas",monospace; font-size: 0.88em; }
+  pre { background: #1a1a2e; color: #e0e0f0; padding: 1.1rem 1.4rem;
+        border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+  pre code { background: transparent; color: inherit; padding: 0; font-size: 0.87em; line-height: 1.7; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.93em; }
+  th { background: #0f3460; color: #fff; text-align: left; padding: 0.6rem 0.9rem; font-weight: 600; }
+  td { padding: 0.55rem 0.9rem; border-bottom: 1px solid #eef0f8; }
+  tr:nth-child(even) td { background: #f8f9fd; }
+  strong { color: #0f3460; }
+  .subtitle { color: #666; font-size: 0.95rem; margin-top: -0.5rem; margin-bottom: 1.5rem; }
+  ol, ul { padding-left: 1.5rem; }
+  li { margin: 0.3rem 0; }
+  blockquote { border-left: 4px solid #e94560; margin: 1rem 0; padding: 0.5rem 1rem;
+               background: #fff8f8; color: #444; font-style: italic; }
+  .pillar-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 1.2rem 0 1.5rem; }
+  .pillar-card { border: 2px solid #e8e8f0; border-radius: 8px; padding: 1rem 1.2rem; }
+  .pillar-card.p1 { border-color: #0f3460; }
+  .pillar-card.p2 { border-color: #e94560; }
+  .pillar-card.p3 { border-color: #1a7431; }
+  .pillar-card h4 { margin: 0 0 0.4rem; font-size: 1rem; }
+  .pillar-card.p1 h4 { color: #0f3460; }
+  .pillar-card.p2 h4 { color: #e94560; }
+  .pillar-card.p3 h4 { color: #1a7431; }
+  .pillar-card p { margin: 0.2rem 0; font-size: 0.88em; color: #444; }
+  .split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0 1.5rem; }
+  .split-card { border: 1px solid #e8e8f0; border-radius: 8px; padding: 1rem 1.2rem; }
+  .split-card h4 { margin: 0 0 0.5rem; font-size: 1rem; color: #0f3460; }
+  .split-card p { margin: 0.3rem 0; font-size: 0.92em; color: #444; }
+  .badge { display: inline-block; padding: 0.2em 0.6em; border-radius: 4px;
+           font-size: 0.82em; font-weight: 600; font-style: normal; }
+  .badge-ci { background: #e8f4ff; color: #0969da; }
+  .badge-terminal { background: #e6f4ea; color: #1a7431; }
+  .badge-blocked { background: #ffeef0; color: #cf222e; }
+  .badge-allowed { background: #e6f4ea; color: #1a7431; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Nirmata AI Security — Demo Guide</h1>
+<p class="subtitle">Talking track for the three-pillar Nirmata AI security demo.</p>
+
+<hr>
+
+<h2>The Story</h2>
+<blockquote>"AI agents are software. They need a supply chain, a governance layer, and a runtime security layer — just like any other software you run in production."</blockquote>
+
+<div class="pillar-grid">
+  <div class="pillar-card p1">
+    <h4>Pillar 1 · AI BOM</h4>
+    <p><strong>Supply Chain Visibility</strong></p>
+    <p>"How do I know what AI is in my code?"</p>
+    <p><code>nctl</code> scans source → discovers agents, tools, models, MCP. CI gate blocks unapproved additions.</p>
+  </div>
+  <div class="pillar-card p2">
+    <h4>Pillar 2 · AI Controls Proxy</h4>
+    <p><strong>Sanctioned Governance</strong></p>
+    <p>"How do I ensure agents only call approved LLMs?"</p>
+    <p>Inline proxy intercepts every LLM API call and enforces a sanctioned model list.</p>
+  </div>
+  <div class="pillar-card p3">
+    <h4>Pillar 3 · Kyverno eBPF</h4>
+    <p><strong>Runtime Enforcement</strong></p>
+    <p>"What if someone bypasses the proxy?"</p>
+    <p>eBPF hooks into kernel <code>connect()</code> syscalls — no userspace bypass possible.</p>
+  </div>
+</div>
+
+<hr>
+
+<h2>How the demo is split</h2>
+<div class="split-grid">
+  <div class="split-card">
+    <h4><span class="badge badge-ci">GitHub Actions</span> &nbsp;Pillar 1</h4>
+    <p><strong>AI BOM scanning · CI gate · SARIF · Attestation</strong></p>
+    <p>Runs on Linux where <code>nctl agent aibom</code> is fully supported. Trigger manually from the Actions tab.</p>
+  </div>
+  <div class="split-card">
+    <h4><span class="badge badge-terminal">Local terminal</span> &nbsp;Pillars 2 &amp; 3</h4>
+    <p><strong>AI Controls proxy · Kyverno eBPF runtime</strong></p>
+    <p>Runs on your laptop via <code>bash demo/run-demo.sh</code> after <code>setup-demo-cluster.sh</code>.</p>
+  </div>
+</div>
+
+<hr>
+
+<h2>Before the call — set up the local cluster</h2>
+<pre><code>cd kyverno-aibom-reference
+bash demo/setup-demo-cluster.sh</code></pre>
+<p>Takes 3–5 minutes. Creates: kind cluster, local registry, Kyverno, cosign keypair, attested image, ImageValidatingPolicies, <code>ai-controls</code> and <code>agents</code> namespaces.</p>
+
+<hr>
+
+<h2>Step 1: GitHub Actions — Pillar 1 (AI BOM)</h2>
+<ol>
+  <li>Open <strong>Actions → AIBOM Demo — Pillar 1: AI BOM Supply Chain</strong></li>
+  <li>Click <strong>Run workflow</strong></li>
+  <li>Choose a scenario and walk through the job graph:</li>
+</ol>
+
+<table>
+  <tr><th>Scenario</th><th>What it shows</th></tr>
+  <tr><td><code>approved</code></td><td>Full happy path: scan → gate pass → SARIF → attest → publish to NCH</td></tr>
+  <tr><td><code>bad-tool</code></td><td><code>filesystem</code> tool detected → diff gate <strong>BLOCKS</strong>, build never runs</td></tr>
+  <tr><td><code>bad-model</code></td><td><code>gpt-5</code> detected → diff gate <strong>BLOCKS</strong>, build never runs</td></tr>
+</table>
+
+<table>
+  <tr><th>Act</th><th>What to say</th></tr>
+  <tr><td><strong>1 · Discovery</strong></td><td>"nctl scanned the source in seconds — no instrumentation needed. Found the agent framework, tools, and models by reading the code."</td></tr>
+  <tr><td><strong>2 · Baseline diff</strong></td><td>"The committed baseline JSON is the policy. Anything added that isn't in it fails the gate. Developers need an explicit approval step."</td></tr>
+  <tr><td><strong>3 · SARIF + attest</strong></td><td>"AI inventory in GitHub Security tab alongside CVEs. The AIBOM is cryptographically bound to the image digest via cosign."</td></tr>
+  <tr><td><strong>4 · Bad tool blocked</strong></td><td>"The filesystem tool gives full disk access. Gate caught it before the PR merged — the build never ran."</td></tr>
+  <tr><td><strong>5 · Bad model blocked</strong></td><td>"gpt-5 isn't in the baseline. Gate blocked it. No image built, no code shipped."</td></tr>
+</table>
+
+<hr>
+
+<h2>Step 2: Terminal — Pillars 2 &amp; 3</h2>
+<pre><code>bash demo/run-demo.sh</code></pre>
+
+<h3>Pillar 2 — AI Controls Proxy (Sanctioned Governance)</h3>
+<table>
+  <tr><th>Step</th><th>What happens</th></tr>
+  <tr><td>Show policy</td><td><code>demo/ai-controls/sanctioned-policy.yaml</code> — approved providers, blocked models, audit mode</td></tr>
+  <tr><td>Blocked call</td><td>Agent requests <code>gpt-5</code> → <span class="badge badge-blocked">HTTP 403 Forbidden</span> — call never reached OpenAI</td></tr>
+  <tr><td>Allowed call</td><td>Agent uses <code>claude-3-5-sonnet</code> → <span class="badge badge-allowed">HTTP 200 OK</span> + audit log to NCH</td></tr>
+</table>
+<blockquote>"This is inline — the proxy is the path to the internet. A blocked call never reaches the provider. No token cost, no data sent."</blockquote>
+
+<h3>Pillar 3 — Kyverno eBPF Runtime</h3>
+<table>
+  <tr><th>Step</th><th>What happens</th></tr>
+  <tr><td>Show policy</td><td><code>demo/ebpf-policies/agent-egress.yaml</code> — default-deny egress for AI agent pods</td></tr>
+  <tr><td>Unrestricted pod</td><td>No label → curl reaches the internet (before state)</td></tr>
+  <tr><td>AI agent pod</td><td>Labelled <code>nirmata.io/ai-agent=true</code> → connection times out — kernel blocks it</td></tr>
+</table>
+<blockquote>"eBPF enforcement happens below the application layer — no LD_PRELOAD trick, no modified library, no admin escalation gets around it."</blockquote>
+
+<hr>
+
+<h2>Key talking points</h2>
+<blockquote><strong>"Three layers, one story."</strong> Source code → CI → runtime. We cover every point where an AI component can be introduced or misused.</blockquote>
+<blockquote><strong>"The AI BOM is the source of truth."</strong> It's not documentation — it's a signed artifact attached to your image. If there's no AIBOM, the image can't deploy.</blockquote>
+<blockquote><strong>"The proxy is inline, not observability."</strong> Blocking happens before the call reaches the provider. Prevention, not alerting after the fact.</blockquote>
+<blockquote><strong>"eBPF can't be bypassed from userspace."</strong> The check happens in the kernel. No LD_PRELOAD trick, no modified library, no admin escalation gets around it.</blockquote>
+<blockquote><strong>"Policy changes propagate in seconds."</strong> Add a model to the approved list → <code>kubectl apply</code> → proxy picks it up. No rebuild, no restart.</blockquote>
+
+</div>
+</body>
+</html>
