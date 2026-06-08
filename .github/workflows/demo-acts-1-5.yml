@@ -44,13 +44,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install nctl
+      - name: Install nctl (with aibom scanner)
         run: |
-          curl -fsSL -o nctl.zip \
-            https://nirmata-downloads.s3.us-east-2.amazonaws.com/nctl/nctl_4.10.17/nctl_4.10.17_linux_amd64.zip
-          unzip -o nctl.zip nctl
-          chmod +x nctl
-          sudo mv nctl /usr/local/bin/nctl
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker create --name nctl-tmp ghcr.io/nirmata/nctl:latest
+          docker cp nctl-tmp:/usr/local/bin/nctl /usr/local/bin/nctl
+          docker rm nctl-tmp
           nctl version
 
       - name: "[bad-tool] Inject filesystem tool into source"
@@ -73,13 +72,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install nctl
+      - name: Install nctl (with aibom scanner)
         run: |
-          curl -fsSL -o nctl.zip \
-            https://nirmata-downloads.s3.us-east-2.amazonaws.com/nctl/nctl_4.10.17/nctl_4.10.17_linux_amd64.zip
-          unzip -o nctl.zip nctl
-          chmod +x nctl
-          sudo mv nctl /usr/local/bin/nctl
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker create --name nctl-tmp ghcr.io/nirmata/nctl:latest
+          docker cp nctl-tmp:/usr/local/bin/nctl /usr/local/bin/nctl
+          docker rm nctl-tmp
           nctl version
 
       - name: "📄 Generate AIBOM JSON"
@@ -108,13 +106,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install nctl
+      - name: Install nctl (with aibom scanner)
         run: |
-          curl -fsSL -o nctl.zip \
-            https://nirmata-downloads.s3.us-east-2.amazonaws.com/nctl/nctl_4.10.17/nctl_4.10.17_linux_amd64.zip
-          unzip -o nctl.zip nctl
-          chmod +x nctl
-          sudo mv nctl /usr/local/bin/nctl
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker create --name nctl-tmp ghcr.io/nirmata/nctl:latest
+          docker cp nctl-tmp:/usr/local/bin/nctl /usr/local/bin/nctl
+          docker rm nctl-tmp
           nctl version
 
       - name: "📊 Generate SARIF report"
@@ -171,13 +168,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install nctl
+      - name: Install nctl (with aibom scanner)
         run: |
-          curl -fsSL -o nctl.zip \
-            https://nirmata-downloads.s3.us-east-2.amazonaws.com/nctl/nctl_4.10.17/nctl_4.10.17_linux_amd64.zip
-          unzip -o nctl.zip nctl
-          chmod +x nctl
-          sudo mv nctl /usr/local/bin/nctl
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker create --name nctl-tmp ghcr.io/nirmata/nctl:latest
+          docker cp nctl-tmp:/usr/local/bin/nctl /usr/local/bin/nctl
+          docker rm nctl-tmp
           nctl version
 
       - name: Inject filesystem tool
@@ -203,13 +199,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install nctl
+      - name: Install nctl (with aibom scanner)
         run: |
-          curl -fsSL -o nctl.zip \
-            https://nirmata-downloads.s3.us-east-2.amazonaws.com/nctl/nctl_4.10.17/nctl_4.10.17_linux_amd64.zip
-          unzip -o nctl.zip nctl
-          chmod +x nctl
-          sudo mv nctl /usr/local/bin/nctl
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker create --name nctl-tmp ghcr.io/nirmata/nctl:latest
+          docker cp nctl-tmp:/usr/local/bin/nctl /usr/local/bin/nctl
+          docker rm nctl-tmp
           nctl version
 
       - name: Inject unapproved model
