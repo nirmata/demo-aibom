@@ -47,15 +47,13 @@ jobs:
       - name: Install nctl (with aibom scanner)
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          # Locate nctl binary inside the container image
-          NCTL_PATH=$(docker run --rm --entrypoint sh ghcr.io/nirmata/nctl:latest \
-            -c "which nctl 2>/dev/null || find /usr /bin /opt -name nctl -type f 2>/dev/null | head -1")
-          echo "Found nctl at: $NCTL_PATH"
-          # Create a wrapper so all subsequent 'nctl' calls run inside the container
-          # with the GitHub workspace mounted as /workspace
+          # Create a wrapper that invokes nctl inside the container with the
+          # workspace mounted. --entrypoint nctl ensures we call nctl directly
+          # even if the image's default entrypoint is something else (e.g. nono).
           cat > /usr/local/bin/nctl << 'WRAPPER'
           #!/bin/bash
           exec docker run --rm \
+            --entrypoint nctl \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/nirmata/nctl:latest \
@@ -87,15 +85,13 @@ jobs:
       - name: Install nctl (with aibom scanner)
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          # Locate nctl binary inside the container image
-          NCTL_PATH=$(docker run --rm --entrypoint sh ghcr.io/nirmata/nctl:latest \
-            -c "which nctl 2>/dev/null || find /usr /bin /opt -name nctl -type f 2>/dev/null | head -1")
-          echo "Found nctl at: $NCTL_PATH"
-          # Create a wrapper so all subsequent 'nctl' calls run inside the container
-          # with the GitHub workspace mounted as /workspace
+          # Create a wrapper that invokes nctl inside the container with the
+          # workspace mounted. --entrypoint nctl ensures we call nctl directly
+          # even if the image's default entrypoint is something else (e.g. nono).
           cat > /usr/local/bin/nctl << 'WRAPPER'
           #!/bin/bash
           exec docker run --rm \
+            --entrypoint nctl \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/nirmata/nctl:latest \
@@ -133,15 +129,13 @@ jobs:
       - name: Install nctl (with aibom scanner)
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          # Locate nctl binary inside the container image
-          NCTL_PATH=$(docker run --rm --entrypoint sh ghcr.io/nirmata/nctl:latest \
-            -c "which nctl 2>/dev/null || find /usr /bin /opt -name nctl -type f 2>/dev/null | head -1")
-          echo "Found nctl at: $NCTL_PATH"
-          # Create a wrapper so all subsequent 'nctl' calls run inside the container
-          # with the GitHub workspace mounted as /workspace
+          # Create a wrapper that invokes nctl inside the container with the
+          # workspace mounted. --entrypoint nctl ensures we call nctl directly
+          # even if the image's default entrypoint is something else (e.g. nono).
           cat > /usr/local/bin/nctl << 'WRAPPER'
           #!/bin/bash
           exec docker run --rm \
+            --entrypoint nctl \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/nirmata/nctl:latest \
@@ -207,15 +201,13 @@ jobs:
       - name: Install nctl (with aibom scanner)
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          # Locate nctl binary inside the container image
-          NCTL_PATH=$(docker run --rm --entrypoint sh ghcr.io/nirmata/nctl:latest \
-            -c "which nctl 2>/dev/null || find /usr /bin /opt -name nctl -type f 2>/dev/null | head -1")
-          echo "Found nctl at: $NCTL_PATH"
-          # Create a wrapper so all subsequent 'nctl' calls run inside the container
-          # with the GitHub workspace mounted as /workspace
+          # Create a wrapper that invokes nctl inside the container with the
+          # workspace mounted. --entrypoint nctl ensures we call nctl directly
+          # even if the image's default entrypoint is something else (e.g. nono).
           cat > /usr/local/bin/nctl << 'WRAPPER'
           #!/bin/bash
           exec docker run --rm \
+            --entrypoint nctl \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/nirmata/nctl:latest \
@@ -250,15 +242,13 @@ jobs:
       - name: Install nctl (with aibom scanner)
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          # Locate nctl binary inside the container image
-          NCTL_PATH=$(docker run --rm --entrypoint sh ghcr.io/nirmata/nctl:latest \
-            -c "which nctl 2>/dev/null || find /usr /bin /opt -name nctl -type f 2>/dev/null | head -1")
-          echo "Found nctl at: $NCTL_PATH"
-          # Create a wrapper so all subsequent 'nctl' calls run inside the container
-          # with the GitHub workspace mounted as /workspace
+          # Create a wrapper that invokes nctl inside the container with the
+          # workspace mounted. --entrypoint nctl ensures we call nctl directly
+          # even if the image's default entrypoint is something else (e.g. nono).
           cat > /usr/local/bin/nctl << 'WRAPPER'
           #!/bin/bash
           exec docker run --rm \
+            --entrypoint nctl \
             -v "${GITHUB_WORKSPACE}:/workspace" \
             -w /workspace \
             ghcr.io/nirmata/nctl:latest \
