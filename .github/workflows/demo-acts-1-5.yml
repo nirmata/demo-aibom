@@ -191,7 +191,15 @@ jobs:
             "${{ steps.build.outputs.image }}@${{ steps.build.outputs.digest }}"
 
       - name: "📡 Publish AIBOM to Nirmata Control Hub"
-        run: nctl agent aibom publish aibom-current.json
+        env:
+          NIRMATA_TOKEN: ${{ secrets.NIRMATA_TOKEN }}
+        run: |
+          if [[ -z "${NIRMATA_TOKEN}" ]]; then
+            echo "ℹ NIRMATA_TOKEN secret not set — skipping publish."
+            echo "  Add NIRMATA_TOKEN to repo secrets to enable NCH inventory."
+          else
+            nctl agent aibom publish aibom-current.json
+          fi
 
   # ── Act 4 (bad-tool only) ──────────────────────────────────────────────────
   act-4-bad-tool:
