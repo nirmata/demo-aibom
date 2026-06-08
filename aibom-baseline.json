@@ -25,7 +25,7 @@
       "category": "agent",
       "name": "Anthropic",
       "framework": "anthropic_sdk",
-      "file_path": "src/research-agent.ts",
+      "file_path": "research-agent.ts",
       "line_number": 3,
       "confidence": 0.9,
       "properties": [
